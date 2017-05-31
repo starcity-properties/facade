@@ -18,7 +18,9 @@
 
 (html/defsnippet loading-fullscreen "templates/partials/loading-fs.html" [:section] [])
 
-(html/defsnippet app-navbar "templates/partials/app/navbar.html" [:nav] [])
+(html/defsnippet app-navbar "templates/partials/app/navbar.html" [:nav]
+  [& {:keys [logout-href] :or {logout-href "/logout"}}]
+  [:#logout] (html/set-attr :href logout-href))
 
 (html/defsnippet public-header "templates/partials/header.html" [:header]
   [& [active]]
