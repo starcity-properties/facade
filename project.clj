@@ -1,4 +1,4 @@
-(defproject starcity/facade "0.1.5-SNAPSHOT"
+(defproject starcity/facade "0.1.5"
   :description "Provides HTML templates and snippets for Starcity's front-end."
   :url "https://github.com/starcity-properties/facade"
   :license {:name "Eclipse Public License"
