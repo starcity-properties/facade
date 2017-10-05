@@ -10,6 +10,7 @@
 ;; Helpers
 ;; =============================================================================
 
+
 (defn- optify
   "Helper that examines paths with the supplied prefix and either subs
   in their cache-busting URLs or returns them unchanged."
@@ -18,6 +19,7 @@
     (or (and (.startsWith src prefix)
              (not-empty (link/file-path req src)))
         src)))
+
 
 (defn- css [& stylesheets]
   (map
@@ -28,6 +30,7 @@
              :media "screen, projection"}])
    stylesheets))
 
+
 (defn- css-bundles* [req & bundle-names]
   (map
    (fn [href]
@@ -37,16 +40,20 @@
              :media "screen, projection"}])
    (link/bundle-paths req bundle-names)))
 
+
 (defn- js* [scripts]
   (map
    (fn [src] [:script {:src src :type "text/javascript"}])
    scripts))
 
+
 (defn- js-bundles* [req bundle-names]
   (js* (link/bundle-paths req bundle-names)))
 
+
 (defn- fonts* [fonts]
   (map (fn [href] [:link {:href href :rel "stylesheet"}]) fonts))
+
 
 (defn- json* [json]
   (map
@@ -54,21 +61,26 @@
      [:script (format "var %s=%s;" name (json/encode obj))])
    json))
 
+
 (defmacro maybe-substitute
   ([expr] `(if-let [x# ~expr] (html/substitute x#) identity))
   ([expr & exprs] `(maybe-substitute (or ~expr ~@exprs))))
+
 
 (defmacro maybe-prepend
   ([expr] `(if-let [x# ~expr] (html/prepend x#) identity))
   ([expr & exprs] `(maybe-prepend (or ~expr ~@exprs))))
 
+
 (defmacro maybe-append
   ([expr] `(if-let [x# ~expr] (html/append x#) identity))
   ([expr & exprs] `(maybe-append (or ~expr ~@exprs))))
 
+
 (defmacro maybe-content
   ([expr] `(if-let [x# ~expr] (html/content x#) identity))
   ([expr & exprs] `(maybe-content (or ~expr ~@exprs))))
+
 
 (defn maybe-errors
   "If `errors` are non-nil, append them to the selected container; otherwise,
@@ -81,6 +93,7 @@
          html/append)
     (html/add-class "dn")))
 
+
 (defn maybe-messages
   "If `errors` are non-nil, append them to the selected container; otherwise,
   hide the selected container."
@@ -92,9 +105,11 @@
          html/append)
     (html/add-class "dn")))
 
+
 ;; =============================================================================
 ;; Components
 ;; =============================================================================
+
 
 ;; See https://github.com/cgrand/enlive/issues/110
 (defn hickory-parser
@@ -102,14 +117,18 @@
   [stream]
   (filter map? (map h/as-hickory (h/parse-fragment (slurp stream)))))
 
+
 (def default-fonts
   "https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600")
+
 
 (def lato-fonts
   "https://fonts.googleapis.com/css?family=Lato:300,400,700,900")
 
+
 (def font-awesome
   "https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css")
+
 
 (def chatlio
   (html/html
@@ -120,9 +139,11 @@
        c.parentNode.insertBefore(n,c);
      }();"]))
 
+
 ;; =============================================================================
 ;; Templates
 ;; =============================================================================
+
 
 (deftemplate public "templates/base.html"
   [req & {:keys [header svg main fonts js-bundles css-bundles asset-path]
@@ -137,6 +158,7 @@
   [:header] (html/substitute (or header (snippets/public-header)))
   [:main] (maybe-substitute main)
   [:img] #(update-in % [:attrs :src] (optify req asset-path)))
+
 
 (deftemplate app "templates/app.html"
   [req app-name & {:keys [stylesheets navbar json scripts asset-path
