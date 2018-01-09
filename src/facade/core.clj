@@ -146,7 +146,7 @@
 
 
 (deftemplate public "templates/base.html"
-  [req & {:keys [header svg main fonts js-bundles css-bundles asset-path]
+  [req & {:keys [header svg main scripts fonts js-bundles css-bundles asset-path]
           :or   {fonts      [default-fonts]
                  asset-path "/assets/img/"}}]
   [:head] (html/do->
@@ -154,7 +154,11 @@
            (html/append (html/html (fonts* fonts))))
   [:body] (html/do->
            (maybe-prepend svg)
-           (html/append (html/html (js-bundles* req js-bundles))))
+           (html/append
+            (html/html
+             (concat
+              (js* scripts)
+              (js-bundles* req js-bundles)))))
   [:header] (html/substitute (or header (snippets/public-header)))
   [:main] (maybe-substitute main)
   [:img] #(update-in % [:attrs :src] (optify req asset-path)))
