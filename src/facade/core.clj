@@ -140,6 +140,28 @@
      }();"]))
 
 
+(def adroll
+  (html/html
+   [:script {:type "text/javascript"}
+    "adroll_adv_id = 'WYN4XXLCG5GR3IMCSDA43O';
+    adroll_pix_id = '3NAV5PS54NHSFNI4NISJ2A';
+    (function () {
+        var _onload = function(){
+            if (document.readyState && !/loaded|complete/.test(document.readyState)){setTimeout(_onload, 10);return}
+            if (!window.__adroll_loaded){__adroll_loaded=true;setTimeout(_onload, 50);return}
+            var scr = document.createElement('script');
+            var host = (('https:' == document.location.protocol) ? 'https://s.adroll.com' : 'http://a.adroll.com');
+            scr.setAttribute('async', 'true');
+            scr.type = 'text/javascript';
+            scr.src = host + '/j/roundtrip.js';
+            ((document.getElementsByTagName('head') || [null])[0] ||
+                document.getElementsByTagName('script')[0].parentNode).appendChild(scr);
+        };
+        if (window.addEventListener) {window.addEventListener('load', _onload, false);}
+        else {window.attachEvent('onload', _onload)}
+    }());"]))
+
+
 ;; =============================================================================
 ;; Templates
 ;; =============================================================================
@@ -158,7 +180,8 @@
             (html/html
              (concat
               (js* scripts)
-              (js-bundles* req js-bundles)))))
+              (js-bundles* req js-bundles))))
+           (html/append adroll))
   [:header] (html/substitute (or header (snippets/public-header)))
   [:main] (maybe-substitute main)
   [:img] #(update-in % [:attrs :src] (optify req asset-path)))
