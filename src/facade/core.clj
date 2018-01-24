@@ -1,65 +1,15 @@
 (ns facade.core
-  (:require [cheshire.core :as json]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
+            [facade.html :refer :all]
+            [facade.optimus :as foptimus]
+            [facade.snippets :as snippets]
             [hickory.core :as h]
             [net.cgrand.enlive-html :as html :refer [deftemplate]]
-            [optimus.link :as link]
-            [facade.snippets :as snippets]))
+            [optimus.link :as link]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
-
-
-(defn- optify
-  "Helper that examines paths with the supplied prefix and either subs
-  in their cache-busting URLs or returns them unchanged."
-  [req prefix]
-  (fn [^String src]
-    (or (and (.startsWith src prefix)
-             (not-empty (link/file-path req src)))
-        src)))
-
-
-(defn- css [& stylesheets]
-  (map
-   (fn [href]
-     [:link {:href  href
-             :rel   "stylesheet"
-             :type  "text/css"
-             :media "screen, projection"}])
-   stylesheets))
-
-
-(defn- css-bundles* [req & bundle-names]
-  (map
-   (fn [href]
-     [:link {:href  href
-             :rel   "stylesheet"
-             :type  "text/css"
-             :media "screen, projection"}])
-   (link/bundle-paths req bundle-names)))
-
-
-(defn- js* [scripts]
-  (map
-   (fn [src] [:script {:src src :type "text/javascript"}])
-   scripts))
-
-
-(defn- js-bundles* [req bundle-names]
-  (js* (link/bundle-paths req bundle-names)))
-
-
-(defn- fonts* [fonts]
-  (map (fn [href] [:link {:href href :rel "stylesheet"}]) fonts))
-
-
-(defn- json* [json]
-  (map
-   (fn [[name obj]]
-     [:script (format "var %s=%s;" name (json/encode obj))])
-   json))
 
 
 (defmacro maybe-substitute
@@ -140,51 +90,9 @@
      }();"]))
 
 
-(def adroll
-  (html/html
-   [:script {:type "text/javascript"}
-    "adroll_adv_id = 'WYN4XXLCG5GR3IMCSDA43O';
-    adroll_pix_id = '3NAV5PS54NHSFNI4NISJ2A';
-    (function () {
-        var _onload = function(){
-            if (document.readyState && !/loaded|complete/.test(document.readyState)){setTimeout(_onload, 10);return}
-            if (!window.__adroll_loaded){__adroll_loaded=true;setTimeout(_onload, 50);return}
-            var scr = document.createElement('script');
-            var host = (('https:' == document.location.protocol) ? 'https://s.adroll.com' : 'http://a.adroll.com');
-            scr.setAttribute('async', 'true');
-            scr.type = 'text/javascript';
-            scr.src = host + '/j/roundtrip.js';
-            ((document.getElementsByTagName('head') || [null])[0] ||
-                document.getElementsByTagName('script')[0].parentNode).appendChild(scr);
-        };
-        if (window.addEventListener) {window.addEventListener('load', _onload, false);}
-        else {window.attachEvent('onload', _onload)}
-    }());"]))
-
-
 ;; =============================================================================
 ;; Templates
 ;; =============================================================================
-
-
-(deftemplate public "templates/base.html"
-  [req & {:keys [header svg main scripts fonts js-bundles css-bundles asset-path]
-          :or   {fonts      [default-fonts]
-                 asset-path "/assets/img/"}}]
-  [:head] (html/do->
-           (html/append (html/html (apply css-bundles* req css-bundles)))
-           (html/append (html/html (fonts* fonts))))
-  [:body] (html/do->
-           (maybe-prepend svg)
-           (html/append
-            (html/html
-             (concat
-              (js* scripts)
-              (js-bundles* req js-bundles))))
-           (html/append adroll))
-  [:header] (html/substitute (or header (snippets/public-header)))
-  [:main] (maybe-substitute main)
-  [:img] #(update-in % [:attrs :src] (optify req asset-path)))
 
 
 (deftemplate app "templates/app.html"
@@ -194,20 +102,20 @@
                           asset-path "/assets/img/"}}]
   [:head :title] (html/content (or title (str "Starcity - " (string/capitalize app-name))))
   [:head] (html/do->
-           (html/append (html/html (apply css stylesheets)))
-           (html/append (html/html (apply css-bundles* req css-bundles)))
-           (html/append (html/html (fonts* fonts))))
+           (html/append (apply css-links stylesheets))
+           (html/append (apply foptimus/css-bundles req css-bundles))
+           (html/append (font-links fonts)))
   [:body] (html/do->
            (maybe-prepend navbar)
-           (maybe-append (html/html (json* json)))
+           (maybe-append (json-objects json))
            (html/append
             (html/html
              (concat
-              (js* scripts)
-              (js-bundles* req [(str app-name ".js")])
+              (js-links scripts)
+              (foptimus/js-bundles req (str app-name ".js"))
               [[:script (format "window.onload=function(){%s.core.run();}" app-name)]])))
            (maybe-append (when chatlio? chatlio)))
   [:#app] (if content
             (html/substitute content)
             (html/set-attr :id app-name))
-  [:img] #(update-in % [:attrs :src] (optify req asset-path)))
+  [:img] #(update-in % [:attrs :src] (foptimus/cache-bust-images req asset-path)))
