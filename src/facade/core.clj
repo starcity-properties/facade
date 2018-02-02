@@ -102,7 +102,7 @@
                           asset-path "/assets/img/"}}]
   [:head :title] (html/content (or title (str "Starcity - " (string/capitalize app-name))))
   [:head] (html/do->
-           (html/append (apply css-links stylesheets))
+           (html/append (css-links stylesheets))
            (html/append (apply foptimus/css-bundles req css-bundles))
            (html/append (font-links fonts)))
   [:body] (html/do->
