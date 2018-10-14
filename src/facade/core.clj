@@ -69,7 +69,7 @@
 
 
 (def default-fonts
-  "https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600")
+  "https://fonts.googleapis.com/css?family=Caveat|Eczar:800|Work+Sans:400,600")
 
 
 (def lato-fonts
